@@ -1,6 +1,6 @@
 package com.familybank.controllers;
 
-import com.familybank.models.Payment;
+import com.familybank.models.PaymentRequest;
 import com.familybank.services.FeePaymentNotificationService;
 import com.familybank.utils.ValidationResponse;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ public class PaymentController {
     }
 
     @PostMapping("/validate")
-    public ResponseEntity<HashMap<String,Object>> validatePayment(@RequestBody Payment paymentRequest) {
+    public ResponseEntity<HashMap<String,Object>> validatePayment(@RequestBody PaymentRequest paymentRequest) {
         // Process the payment request
         String studentId = String.valueOf(paymentRequest.getStudentId());
         if(studentId.length()<1) {
