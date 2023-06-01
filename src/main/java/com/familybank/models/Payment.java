@@ -16,6 +16,9 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name="payment_id")
+    private String paymentId;
+
     @Column(name = "student_id")
     private Long studentId;
 
@@ -47,6 +50,14 @@ public class Payment {
     }
 
     // Getters and setters
+
+    public String getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(String paymentId) {
+        this.paymentId = paymentId;
+    }
 
     public Long getId() {
         return id;
