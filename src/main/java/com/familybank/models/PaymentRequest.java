@@ -9,78 +9,52 @@ import java.time.LocalDateTime;
 
 @Component
 @Entity
-@Table(name = "payment")
+@Table(name = "payments")
 public class PaymentRequest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(name="payment_id")
     private String paymentId;
-
     @Column(name = "student_id")
     private Long studentId;
-
     @Column(name = "amount")
     private BigDecimal amount;
-
+    @Column(name="payment_description")
+    private String paymentDescription;
     @Column(name = "payment_method")
     private String paymentMethod;
-
-    @Column(name = "bank_channel")
-    private String bankChannel;
-
-    @Column(name = "payment_date")
+    @Column(name = "payment_channel")
+    private String paymentChannel;
+    @Column(name = "payment_date", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime paymentDate;
-
-    // Constructors, getters, and setters
-
-    // Constructor with all fields
-    public PaymentRequest(Long studentId, BigDecimal amount, String paymentMethod, String bankChannel, LocalDateTime paymentDate) {
-        this.studentId = studentId;
-        this.amount = amount;
-        this.paymentMethod = paymentMethod;
-        this.bankChannel = bankChannel;
-        this.paymentDate = paymentDate;
-    }
-
     // Default constructor (required by JPA)
     public PaymentRequest() {
     }
-
     // Getters and setters
-
     public String getPaymentId() {
         return paymentId;
     }
-
     public void setPaymentId(String paymentId) {
         this.paymentId = paymentId;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getStudentId() {
         return studentId;
     }
-
     public void setStudentId(Long studentId) {
         this.studentId = studentId;
     }
-
     public BigDecimal getAmount() {
         return amount;
     }
-
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
+    }
+    public String getPaymentDescription() {
+        return paymentDescription;
+    }
+    public void setPaymentDescription(String paymentDescription) {
+        this.paymentDescription = paymentDescription;
     }
 
     public String getPaymentMethod() {
@@ -91,20 +65,30 @@ public class PaymentRequest {
         this.paymentMethod = paymentMethod;
     }
 
-    public String getBankChannel() {
-        return bankChannel;
+    public String getPaymentChannel() {
+        return paymentChannel;
     }
-
-    public void setBankChannel(String bankChannel) {
-        this.bankChannel = bankChannel;
+    public void setPaymentChannel(String paymentChannel) {
+        this.paymentChannel = paymentChannel;
     }
-
     public LocalDateTime getPaymentDate() {
         return paymentDate;
     }
-
     public void setPaymentDate(LocalDateTime paymentDate) {
         this.paymentDate = paymentDate;
+    }
+
+    @Override
+    public String toString() {
+        return "PaymentRequest{" +
+                "paymentId='" + paymentId + '\'' +
+                ", studentId=" + studentId +
+                ", amount=" + amount +
+                ", paymentDescription='" + paymentDescription + '\'' +
+                ", paymentMethod='" + paymentMethod + '\'' +
+                ", paymentChannel='" + paymentChannel + '\'' +
+                ", paymentDate=" + paymentDate +
+                '}';
     }
 }
 

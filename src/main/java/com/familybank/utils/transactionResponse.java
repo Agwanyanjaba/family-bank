@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 @Component
-public class ValidationResponse {
-    public HashMap<String,Object> genericResponse(String value, String value1){
-        HashMap<String,Object> map = new LinkedHashMap<>();
-        map.put("ResponseHeader", value);
-        map.put("ResponseBody", value1);
+public class transactionResponse {
+    public HashMap<Object,Object> genericResponse(Object header, Object body){
+        HashMap<Object,Object> map = new LinkedHashMap<>();
+        map.put("ResponseHeader", header);
+        map.put("ResponseBody", body);
 
         return map;
     }
