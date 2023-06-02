@@ -1,10 +1,16 @@
 package com.familybank.controllers;
 
-import com.familybank.models.Payment;
-import com.familybank.services.PeUniversityService;
-import com.familybank.utils.ValidationResponse;
+import com.familybank.models.PaymentRequest;
+import com.familybank.models.StudentValidationResponse;
+import com.familybank.services.FeePaymentNotificationService;
+import com.familybank.services.StudentValidationService;
+import com.familybank.utils.transactionResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,53 +19,59 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 
 @RestController
-@RequestMapping("/payment")
+@RequestMapping("/v1/api/payments")
 public class PaymentController {
+    private final FeePaymentNotificationService feePaymentNotificationService;
+    private final transactionResponse transactionResponse;
+    private final StudentValidationService studentValidationService;
+    private final StudentValidationResponse studentValidationResponse;
+    private final Logger LOGGER = LoggerFactory.getLogger(PaymentController.class);
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
-    private final PeUniversityService peUniversityService;
-    private final ValidationResponse validationResponse;
-
-    public PaymentController(KafkaTemplate<String, String> kafkaTemplate, PeUniversityService peUniversityService,
-                             ValidationResponse validationResponse) {
-        this.kafkaTemplate = kafkaTemplate;
-        this.peUniversityService = peUniversityService;
-        this.validationResponse = validationResponse;
+    @Autowired
+    public PaymentController(FeePaymentNotificationService feePaymentNotificationService,
+                             transactionResponse transactionResponse, StudentValidationService studentValidationService,
+                             StudentValidationResponse studentValidationResponse) {
+        this.feePaymentNotificationService = feePaymentNotificationService;
+        this.transactionResponse = transactionResponse;
+        this.studentValidationService = studentValidationService;
+        this.studentValidationResponse = studentValidationResponse;
     }
 
-    @PostMapping("/validate")
-    public ResponseEntity<HashMap<String,Object>> validatePayment(@RequestBody Payment paymentRequest) {
+    @PostMapping("/fee-collection")
+    public ResponseEntity<HashMap<Object, Object>> validatePayment(@RequestBody PaymentRequest paymentRequest) throws JsonProcessingException {
         // Process the payment request
         String studentId = String.valueOf(paymentRequest.getStudentId());
-        if(studentId.length()<1) {
+        if (studentId.length() < 1) {
 
-            return ResponseEntity.badRequest().body(validationResponse.genericResponse("Bad Request", "Please check student ID"));
+            return ResponseEntity.badRequest().body(transactionResponse.genericResponse("Bad Request", "Please check student ID"));
         }
+        // Send validation request to Pe University via http call
+        StudentValidationResponse studentValidationResponse = studentValidationService.sendStudentValidationRequest(paymentRequest);
+        String studentIdResponse = studentValidationResponse.getStudentId();
 
-        // Send validation request to Pe University via Kafka
-        kafkaTemplate.send("payment-validation", String.valueOf(paymentRequest));
+        //check if validation was successful
+        if(studentIdResponse == null || studentIdResponse.isEmpty()){
+            String noRecordFound = "No student exist with the provided ID";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(transactionResponse.genericResponse("Validation Failed", noRecordFound));
+        }
+        else {
+            LOGGER.info("===Payment Request {}", paymentRequest);
 
-        return ResponseEntity.ok(validationResponse.genericResponse("Success","Fee payment was successful"));
+            /*Call for FeePayment and send notification to University */
+            //insert to bank db
+            HashMap<Object, Object> feePaymentResponse = feePaymentNotificationService.submitPayment(paymentRequest);
+            //send the response
+            if (feePaymentResponse == null) {
+                String errorMessage = "An internal server error occurred.";
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(transactionResponse.genericResponse("Failed", errorMessage));
+            } else {
+                // Send payment notification to entity[Pesapap University]
+                HashMap<Object, Object> paymentNotificationResponse = feePaymentNotificationService.paymentNotification(paymentRequest);
+                return ResponseEntity.ok(paymentNotificationResponse);
+            }
+        }
     }
-
-
-    // Validate student details in Pe University
-    //boolean isValid = peUniversityService.validateStudentDetails(paymentDetails.getStudentId());
-
-//        if (isValid) {
-//            // Store payment details in Fam Bank
-//            famBankService.storePaymentDetails(paymentDetails);
-//
-//            // Send payment notification via Kafka
-//            String notificationMessage = "Payment received for student: " + paymentDetails.getStudentId();
-//            kafkaTemplate.send("payment-notifications", notificationMessage);
-//
-//            // Optionally, add notification details to Pe University database
-//            peUniversityService.saveNotification(paymentDetails.getStudentId(), notificationMessage);
-//
-//            return ResponseEntity.ok("Payment validated and processed successfully.");
-//        } else {
-//            return ResponseEntity.badRequest().body("Invalid student details. Payment rejected.");
-//        }
 
 }
