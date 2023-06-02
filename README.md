@@ -1,6 +1,8 @@
 # family-bank application
 <h3>How to get started.
 
+<h3>Sample cURL request</h3>
+
 <h3>Sample logs [Bank microservice]</h3>
 
 2023-06-02T12:44:43.834+03:00  INFO 48689 --- [nio-9090-exec-1] c.f.controllers.PaymentController        : Student validation response is complete
