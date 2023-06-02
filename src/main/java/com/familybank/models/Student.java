@@ -6,4 +6,12 @@ public class Student {
     public Student(long studentId){
         this.studentId = studentId;
     }
+
+    public long getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(long studentId) {
+        this.studentId = studentId;
+    }
 }
